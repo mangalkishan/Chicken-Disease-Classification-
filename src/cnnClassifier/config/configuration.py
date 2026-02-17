@@ -29,4 +29,13 @@ class ConfigurationManager:
                                                           params_include_top=params.INCLUDE_TOP,
                                                           params_weights=params.WEIGHTS,
                                                           params_classes=params.CLASSES)
-        return prepare_base_model_config            
+        return prepare_base_model_config
+    
+        def get_prepare_callbacks_config(self) -> PrepareCallBacksConfig:
+            prepare_callbacks_config = self.config.prepare_callbacks
+            create_directories([prepare_callbacks_config.checkpoint_model_filepath,prepare_callbacks_config.tenserboard_root_log_dir])
+            return PrepareCallBacksConfig(
+                root_dir=Path(prepare_callbacks_config.root_dir),
+                tenserboard_root_log_dir=Path(prepare_callbacks_config.tenserboard_root_log_dir),
+                checkpoint_model_filepath=Path(prepare_callbacks_config.checkpoint_model_filepath)
+            )
