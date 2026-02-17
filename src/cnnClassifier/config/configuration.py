@@ -1,6 +1,7 @@
+import os
 from cnnClassifier.constants import *
 from cnnClassifier.utils.common import read_yaml, create_directories
-from cnnClassifier.entity.config_entity import DataIngestionConfig, PrepareBaseModelConfig
+from cnnClassifier.entity.config_entity import DataIngestionConfig, PrepareBaseModelConfig, PrepareCallBacksConfig, TrainingConfig
 
 class ConfigurationManager:
     def __init__(self, config_file_path: Path = CONFIG_FILE_PATH, params_file_path: Path = PARAMS_FILE_PATH):
@@ -31,11 +32,32 @@ class ConfigurationManager:
                                                           params_classes=params.CLASSES)
         return prepare_base_model_config
     
-        def get_prepare_callbacks_config(self) -> PrepareCallBacksConfig:
-            prepare_callbacks_config = self.config.prepare_callbacks
-            create_directories([prepare_callbacks_config.checkpoint_model_filepath,prepare_callbacks_config.tenserboard_root_log_dir])
-            return PrepareCallBacksConfig(
-                root_dir=Path(prepare_callbacks_config.root_dir),
-                tenserboard_root_log_dir=Path(prepare_callbacks_config.tenserboard_root_log_dir),
-                checkpoint_model_filepath=Path(prepare_callbacks_config.checkpoint_model_filepath)
-            )
+    def get_prepare_callbacks_config(self) -> PrepareCallBacksConfig:
+        prepare_callbacks_config = self.config.prepare_callbacks
+        model_ckpt_dir = os.path.dirname(prepare_callbacks_config.checkpoint_model_filepath)
+        create_directories([Path(model_ckpt_dir), Path(prepare_callbacks_config.tenserboard_root_log_dir)])
+        return PrepareCallBacksConfig(
+            root_dir=Path(prepare_callbacks_config.root_dir),
+            tenserboard_root_log_dir=Path(prepare_callbacks_config.tenserboard_root_log_dir),
+            checkpoint_model_filepath=Path(prepare_callbacks_config.checkpoint_model_filepath)
+        )
+    
+    def get_training_config(self) -> TrainingConfig:
+        training = self.config.training
+        prepare_base_model = self.config.prepare_base_model
+        params = self.params
+        training_data = os.path.join(self.config.data_ingestion.unzip_dir,'Chicken-fecal-images')
+        create_directories([training.root_dir])
+
+        training_config = TrainingConfig(
+            root_dir=Path(training.root_dir),
+            trained_model_path=Path(training.trained_model_path),
+            updated_base_model_path=Path(prepare_base_model.update_base_model_path),
+            training_data=Path(training_data),
+            params_epochs=params.EPOCHS,
+            params_batch_size=params.BATCH_SIZE,
+            params_is_augmentation=params.AUGMENTATION,
+            params_image_size=params.IMAGE_SIZE
+        )
+
+        return training_config

@@ -1,6 +1,6 @@
 import os
 import tensorflow as tf
-from time import time
+import time
 from cnnClassifier.entity.config_entity import PrepareCallBacksConfig
 
 
